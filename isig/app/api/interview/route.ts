@@ -1,5 +1,6 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
@@ -19,6 +20,22 @@ async function askWithRetry(chat: any, message: string, retries = 2) {
 }
 
 export async function POST(req: NextRequest) {
+  // 로그인 확인
+  const authHeader = req.headers.get("authorization");
+  if (!authHeader) {
+    return NextResponse.json({ error: "로그인이 필요합니다." }, { status: 401 });
+  }
+
+  const supabaseAuth = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+  const token = authHeader.replace("Bearer ", "");
+  const { data: userData, error: authError } = await supabaseAuth.auth.getUser(token);
+
+  if (authError || !userData.user) {
+    return NextResponse.json({ error: "로그인이 필요합니다." }, { status: 401 });
+  }
   const { messages } = await req.json();
 
   const model = genAI.getGenerativeModel({

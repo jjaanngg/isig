@@ -25,7 +25,7 @@ export default function LoginPage() {
         </p>
         <button
           onClick={handleGoogleLogin}
-          className="w-full rounded-full bg-[#12A594] px-6 py-3 text-[14px] font-medium text-white hover:opacity-90"
+          className="w-full rounded-full bg-[#0F8477] px-6 py-3 text-[14px] font-medium text-white hover:opacity-90"
         >
           Google로 시작하기
         </button>

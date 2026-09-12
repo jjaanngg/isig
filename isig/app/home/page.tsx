@@ -15,6 +15,7 @@ export default function HomePage() {
   const router = useRouter();
   const [docs, setDocs] = useState<Doc[] | null>(null);
   const [checkingAuth, setCheckingAuth] = useState(true);
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data }) => {
@@ -39,6 +40,12 @@ export default function HomePage() {
     router.replace("/login");
   };
 
+  const handleDelete = async (slug: string) => {
+    if (!confirm("이 문서를 삭제할까요? 되돌릴 수 없어요.")) return;
+    await supabase.from("documents").delete().eq("share_slug", slug);
+    setDocs((prev) => prev?.filter((d) => d.share_slug !== slug) ?? null);
+  };
+
   if (checkingAuth) {
     return <div className="min-h-screen bg-white" />;
   }
@@ -60,10 +67,17 @@ export default function HomePage() {
 
         <Link
           href="/interview"
-          className="mb-4 rounded-full bg-[#12A594] px-5 py-3 text-center text-[14px] font-medium text-white hover:opacity-90"
+          className="mb-4 rounded-full bg-[#0F8477] px-5 py-3 text-center text-[14px] font-medium text-white hover:opacity-90"
         >
           새 인터뷰 시작하기
         </Link>
+
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="문서 검색"
+          className="mb-4 rounded-full border border-[#EAECEF] bg-white px-5 py-2.5 text-[14px] outline-none focus:border-[#0F8477]"
+        />
 
         {docs && docs.length === 0 && (
           <p className="text-center text-[14px] text-[#6B7280]">
@@ -72,22 +86,41 @@ export default function HomePage() {
         )}
 
         <div className="flex flex-col gap-3">
-          {docs?.map((doc) => {
+          {docs
+            ?.filter((doc) =>
+              doc.content.toLowerCase().includes(search.toLowerCase())
+            )
+            .map((doc) => {
             const firstLine =
               doc.content.split("\n").find((line) => line.trim()) ?? "제목 없음";
             return (
-              <Link
+              <div
                 key={doc.share_slug}
-                href={`/docs/${doc.share_slug}`}
-                className="rounded-2xl border border-[#EAECEF] bg-white p-4 hover:bg-[#F7F8FA]"
+                className="flex items-center justify-between rounded-2xl border border-[#EAECEF] bg-white p-4 hover:bg-[#F7F8FA]"
               >
-                <div className="text-[14px] font-medium text-[#17191C]">
-                  {firstLine.replace(/^#+\s*/, "")}
-                </div>
-                <div className="mt-1 text-[12px] text-[#6B7280]">
-                  {new Date(doc.created_at).toLocaleString("ko-KR")}
-                </div>
-              </Link>
+                <Link href={`/docs/${doc.share_slug}`} className="min-w-0 flex-1">
+                  <div className="truncate text-[14px] font-medium text-[#17191C]">
+                    {firstLine.replace(/^#+\s*/, "")}
+                  </div>
+                  <div className="mt-1 text-[12px] text-[#6B7280]">
+                    {new Date(doc.created_at).toLocaleString("ko-KR")}
+                  </div>
+                </Link>
+                <button
+                  onClick={() => handleDelete(doc.share_slug)}
+                  aria-label="삭제"
+                  className="ml-3 shrink-0 rounded-full p-2 text-[#6B7280] hover:bg-[#FBEAEA] hover:text-[#E5484D]"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <path
+                      d="M6 6l12 12M18 6L6 18"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                </button>
+              </div>
             );
           })}
         </div>
