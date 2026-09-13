@@ -21,6 +21,22 @@ export async function POST(req: NextRequest) {
   if (authError || !userData.user) {
     return NextResponse.json({ error: "로그인이 필요합니다." }, { status: 401 });
   }
+
+  // 속도 제한: 최근 1시간 내 5개 이상 문서 생성 시 차단
+  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+  const { count } = await supabaseAuth
+    .from("sessions")
+    .select("*", { count: "exact", head: true })
+    .eq("user_id", userData.user.id)
+    .gte("created_at", oneHourAgo);
+
+  if (count !== null && count >= 5) {
+    return NextResponse.json(
+      { error: "시간당 생성 가능한 문서 수를 초과했어요. 잠시 후 다시 시도해주세요." },
+      { status: 429 }
+    );
+  }
+
   const { messages } = await req.json();
 
   const model = genAI.getGenerativeModel({

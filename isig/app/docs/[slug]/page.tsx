@@ -1,23 +1,45 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useParams, notFound } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { notFound } from "next/navigation";
 import MarkdownDoc from "@/components/MarkdownDoc";
 import PrintButton from "@/components/PrintButton";
 
-export default async function DocPage({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
-  const { slug } = await params;
+export default function DocPage() {
+  const params = useParams<{ slug: string }>();
+  const [content, setContent] = useState<string | null>(null);
+  const [notFoundState, setNotFoundState] = useState(false);
 
-  const { data, error } = await supabase.rpc("get_document_by_slug", {
-    slug_input: slug,
-  });
+  const fetchDoc = async () => {
+    const { data, error } = await supabase.rpc("get_document_by_slug", {
+      slug_input: params.slug,
+    });
+    if (error || !data?.[0]) {
+      setNotFoundState(true);
+      return;
+    }
+    setContent(data[0].content);
+  };
 
-  const doc = data?.[0];
+  useEffect(() => {
+    fetchDoc();
+  }, [params.slug]);
 
-  if (error || !doc) {
+  const handleToggle = async (lineNumber: number) => {
+    await supabase.rpc("toggle_document_checkbox", {
+      slug_input: params.slug,
+      line_number: lineNumber,
+    });
+    fetchDoc();
+  };
+
+  if (notFoundState) {
     notFound();
+  }
+
+  if (!content) {
+    return <div className="min-h-screen bg-white" />;
   }
 
   return (
@@ -27,10 +49,11 @@ export default async function DocPage({
           ISIG
         </span>
         <div className="rounded-2xl border border-[#EAECEF] bg-white p-6">
-          <div className="mb-3 text-[13px] font-medium text-[#0F8477]">
-            공유된 인수인계 문서
-          </div>
-          <MarkdownDoc content={doc.content} />
+          <div className="mb-3 text-[13px] font-medium text-[#0F8477]">공유된 인수인계 문서</div>
+          <MarkdownDoc content={content} interactive onToggle={handleToggle} />
+          <p className="mt-4 text-[11px] text-[#9AA1AC]">
+            문서 ID: {params.slug} · 열람일: {new Date().toLocaleString("ko-KR")}
+          </p>
         </div>
         <PrintButton />
       </div>

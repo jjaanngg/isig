@@ -106,6 +106,14 @@ export default function HomePage() {
                     {new Date(doc.created_at).toLocaleString("ko-KR")}
                   </div>
                 </Link>
+                <Link
+                  href={`/docs/${doc.share_slug}/edit`}
+                  className="ml-2 shrink-0 rounded-full p-2 text-[#6B7280] hover:bg-[#F7F8FA] hover:text-[#0F8477]"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 20h9M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4L16.5 3.5z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </Link>
                 <button
                   onClick={() => handleDelete(doc.share_slug)}
                   aria-label="삭제"
