@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import LogoutButton from "@/components/LogoutButton";
 
 type Doc = {
   share_slug: string;
@@ -18,6 +19,7 @@ export default function HomePage() {
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [search, setSearch] = useState("");
   const [topicFilter, setTopicFilter] = useState<string | null>(null);
+  const [confirmSlug, setConfirmSlug] = useState<string | null>(null);
 
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data }) => {
@@ -37,15 +39,11 @@ export default function HomePage() {
     });
   }, [router]);
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    router.replace("/login");
-  };
-
-  const handleDelete = async (slug: string) => {
-    if (!confirm("이 문서를 삭제할까요? 되돌릴 수 없어요.")) return;
-    await supabase.from("documents").delete().eq("share_slug", slug);
-    setDocs((prev) => prev?.filter((d) => d.share_slug !== slug) ?? null);
+  const confirmDelete = async () => {
+    if (!confirmSlug) return;
+    await supabase.from("documents").delete().eq("share_slug", confirmSlug);
+    setDocs((prev) => prev?.filter((d) => d.share_slug !== confirmSlug) ?? null);
+    setConfirmSlug(null);
   };
 
   if (checkingAuth) {
@@ -67,12 +65,7 @@ export default function HomePage() {
           <span className="text-[15px] font-extrabold tracking-tight text-[#17191C]">
             ISIG
           </span>
-          <button
-            onClick={handleLogout}
-            className="text-[13px] font-medium text-[#6B7280] hover:text-[#17191C]"
-          >
-            로그아웃
-          </button>
+          <LogoutButton />
         </div>
 
         <Link
@@ -152,7 +145,7 @@ export default function HomePage() {
                     </svg>
                   </Link>
                   <button
-                    onClick={() => handleDelete(doc.share_slug)}
+                    onClick={() => setConfirmSlug(doc.share_slug)}
                     aria-label="삭제"
                     className="rounded-full p-2 text-[#6B7280] hover:bg-[#FBEAEA] hover:text-[#E5484D]"
                   >
@@ -171,6 +164,32 @@ export default function HomePage() {
           })}
         </div>
       </div>
+
+      {confirmSlug && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-5">
+          <div className="w-full max-w-[320px] rounded-2xl bg-white p-6 text-center shadow-xl">
+            <p className="mb-5 text-[14px] leading-relaxed text-[#17191C]">
+              이 문서를 삭제할까요?
+              <br />
+              되돌릴 수 없어요.
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setConfirmSlug(null)}
+                className="flex-1 rounded-full border border-[#EAECEF] py-2.5 text-[13px] font-medium text-[#6B7280]"
+              >
+                취소
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="flex-1 rounded-full bg-[#E5484D] py-2.5 text-[13px] font-medium text-white"
+              >
+                삭제
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

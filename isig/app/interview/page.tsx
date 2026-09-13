@@ -29,6 +29,7 @@ export default function InterviewPage() {
   const [generating, setGenerating] = useState(false);
   const [shareSlug, setShareSlug] = useState<string | null>(null);
   const [genError, setGenError] = useState<string | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -40,6 +41,11 @@ export default function InterviewPage() {
       }
     });
   }, [router]);
+
+  const showToast = (msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(null), 2000);
+  };
 
   const getAuthHeader = async () => {
     const { data } = await supabase.auth.getSession();
@@ -314,7 +320,7 @@ export default function InterviewPage() {
                 navigator.clipboard.writeText(
                   `${window.location.origin}/docs/${shareSlug}`
                 );
-                alert("링크가 복사됐어요!");
+                showToast("링크가 복사됐어요");
               }}
               className="rounded-full bg-[#F7F8FA] px-3 py-1 font-medium text-[#17191C] hover:bg-[#EAECEF]"
             >
@@ -323,6 +329,12 @@ export default function InterviewPage() {
           </div>
         )}
       </div>
+
+      {toast && (
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 rounded-full bg-[#17191C] px-4 py-2.5 text-[13px] font-medium text-white shadow-lg">
+          {toast}
+        </div>
+      )}
     </div>
   );
 }
