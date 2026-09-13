@@ -1,8 +1,23 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
 export default function LoginPage() {
+  const router = useRouter();
+  const [checking, setChecking] = useState(true);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      if (data.user) {
+        router.replace("/home");
+      } else {
+        setChecking(false);
+      }
+    });
+  }, [router]);
+
   const handleGoogleLogin = async () => {
     await supabase.auth.signInWithOAuth({
       provider: "google",
@@ -11,6 +26,10 @@ export default function LoginPage() {
       },
     });
   };
+
+  if (checking) {
+    return <div className="min-h-screen bg-white" />;
+  }
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-white px-5">

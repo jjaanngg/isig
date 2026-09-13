@@ -1,4 +1,9 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { supabase } from "@/lib/supabase";
 import MarkdownDoc from "@/components/MarkdownDoc";
 
 const SAMPLE_DOC = `# 개인화기 손질 및 점검
@@ -39,6 +44,23 @@ const STEPS = [
 ];
 
 export default function LandingPage() {
+  const router = useRouter();
+  const [checking, setChecking] = useState(true);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      if (data.user) {
+        router.replace("/home");
+      } else {
+        setChecking(false);
+      }
+    });
+  }, [router]);
+
+  if (checking) {
+    return <div className="min-h-screen bg-white" />;
+  }
+
   return (
     <div className="flex min-h-screen flex-col items-center bg-white px-5 py-16">
       <div className="flex w-full max-w-[480px] flex-col items-center gap-8 text-center">
