@@ -139,7 +139,12 @@ export default function InterviewPage() {
 
       const { data: doc, error: docError } = await supabase
         .from("documents")
-        .insert({ session_id: session.id, content: docContent, user_id: user.id })
+        .insert({
+          session_id: session.id,
+          content: docContent,
+          user_id: user.id,
+          topic,
+        })
         .select()
         .single();
       if (docError) throw docError;
@@ -153,16 +158,13 @@ export default function InterviewPage() {
     }
   };
 
-  const handleToggleCheckbox = async (lineNumber: number) => {
-    if (!shareSlug) return;
-    await supabase.rpc("toggle_document_checkbox", {
-      slug_input: shareSlug,
-      line_number: lineNumber,
-    });
-    const { data } = await supabase.rpc("get_document_by_slug", {
-      slug_input: shareSlug,
-    });
-    if (data?.[0]) setDocument(data[0].content);
+  const resetToTopicSelect = () => {
+    setStarted(false);
+    setMessages([]);
+    setTopic("");
+    setDocument(null);
+    setShareSlug(null);
+    setGenError(null);
   };
 
   if (checkingAuth) {
@@ -173,6 +175,9 @@ export default function InterviewPage() {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-white px-5">
         <div className="w-full max-w-[420px] flex flex-col gap-4 text-center">
+          <Link href="/home" className="text-[12px] text-[#6B7280] hover:text-[#17191C]">
+            ← 내 문서로
+          </Link>
           <span className="text-[15px] font-extrabold tracking-tight text-[#17191C]">
             ISIG
           </span>
@@ -208,16 +213,30 @@ export default function InterviewPage() {
           <span className="text-[15px] font-extrabold tracking-tight text-[#17191C]">
             ISIG
           </span>
-          <Link href="/home" className="text-[13px] font-medium text-[#6B7280] hover:text-[#17191C]">
-            내 문서
-          </Link>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={resetToTopicSelect}
+              className="text-[13px] font-medium text-[#6B7280] hover:text-[#17191C]"
+            >
+              주제 변경
+            </button>
+            <Link
+              href="/home"
+              className="text-[13px] font-medium text-[#6B7280] hover:text-[#17191C]"
+            >
+              내 문서
+            </Link>
+          </div>
         </div>
 
         {!document && (
           <>
             <div className="no-print flex flex-1 flex-col gap-3 rounded-[28px] bg-[#F7F8FA] p-5">
               {messages.map((msg, i) => (
-                <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                <div
+                  key={i}
+                  className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+                >
                   <div
                     className={`max-w-[78%] px-4 py-3 text-[14px] leading-relaxed ${
                       msg.role === "ai"
@@ -255,7 +274,13 @@ export default function InterviewPage() {
                 className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#0F8477] text-white disabled:opacity-30"
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <path d="M12 19V5M12 5L5 12M12 5l7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  <path
+                    d="M12 19V5M12 5L5 12M12 5l7 7"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
                 </svg>
               </button>
             </div>
@@ -269,7 +294,9 @@ export default function InterviewPage() {
             </button>
 
             {genError && (
-              <p className="no-print mt-2 text-center text-[13px] text-[#E5484D]">{genError}</p>
+              <p className="no-print mt-2 text-center text-[13px] text-[#E5484D]">
+                {genError}
+              </p>
             )}
           </>
         )}
@@ -277,7 +304,7 @@ export default function InterviewPage() {
         {document && (
           <div className="mt-4 rounded-2xl border border-[#EAECEF] bg-white p-6">
             <div className="mb-3 text-[13px] font-medium text-[#0F8477]">완성된 문서</div>
-            <MarkdownDoc content={document} interactive onToggle={handleToggleCheckbox} />
+            <MarkdownDoc content={document} />
             <p className="no-print mt-4 text-[11px] text-[#9AA1AC]">
               작성자: {userEmail} · {new Date().toLocaleString("ko-KR")}
             </p>
@@ -290,7 +317,9 @@ export default function InterviewPage() {
             <span>공유 코드</span>
             <button
               onClick={() => {
-                navigator.clipboard.writeText(`${window.location.origin}/docs/${shareSlug}`);
+                navigator.clipboard.writeText(
+                  `${window.location.origin}/docs/${shareSlug}`
+                );
                 alert("링크가 복사됐어요!");
               }}
               className="rounded-full bg-[#F7F8FA] px-3 py-1 font-medium text-[#17191C] hover:bg-[#EAECEF]"
