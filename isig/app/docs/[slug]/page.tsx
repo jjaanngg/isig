@@ -1,14 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter, notFound } from "next/navigation";
+import { useParams, notFound } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import MarkdownDoc from "@/components/MarkdownDoc";
 import PrintButton from "@/components/PrintButton";
+import BackLink from "@/components/BackLink";
 
 export default function DocPage() {
   const params = useParams<{ slug: string }>();
-  const router = useRouter();
   const [content, setContent] = useState<string | null>(null);
   const [notFoundState, setNotFoundState] = useState(false);
 
@@ -38,13 +38,8 @@ export default function DocPage() {
   return (
     <div className="min-h-screen bg-white">
       <div className="mx-auto flex min-h-screen w-full max-w-[560px] flex-col px-5 py-6">
-        <div className="no-print mb-6 flex items-center gap-3">
-          <button
-            onClick={() => router.back()}
-            className="text-[#6B7280] hover:text-[#17191C]"
-          >
-            ←
-          </button>
+        <div className="no-print mb-6 flex items-center justify-between">
+          <BackLink />
           <span className="text-[15px] font-extrabold tracking-tight text-[#17191C]">
             ISIG
           </span>

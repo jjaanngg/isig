@@ -6,6 +6,7 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import MarkdownDoc from "@/components/MarkdownDoc";
 import PrintButton from "@/components/PrintButton";
+import BackLink from "@/components/BackLink";
 
 type Message = {
   role: "user" | "ai";
@@ -174,10 +175,8 @@ export default function InterviewPage() {
   if (!started) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-white px-5">
-        <div className="w-full max-w-[420px] flex flex-col gap-4 text-center">
-          <Link href="/home" className="text-[12px] text-[#6B7280] hover:text-[#17191C]">
-            ← 내 문서로
-          </Link>
+        <div className="w-full max-w-[420px] flex flex-col items-center gap-4 text-center">
+          <BackLink />
           <span className="text-[15px] font-extrabold tracking-tight text-[#17191C]">
             ISIG
           </span>
@@ -192,12 +191,12 @@ export default function InterviewPage() {
             onChange={(e) => setTopic(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleStart()}
             placeholder="예: 개인화기 손질 및 점검"
-            className="rounded-full border border-[#EAECEF] bg-white px-5 py-3 text-[14px] outline-none focus:border-[#0F8477]"
+            className="w-full rounded-full border border-[#EAECEF] bg-white px-5 py-3 text-[14px] outline-none focus:border-[#0F8477]"
           />
           <button
             onClick={handleStart}
             disabled={startingUp || !topic.trim()}
-            className="rounded-full bg-[#0F8477] px-6 py-3 text-[14px] font-medium text-white disabled:opacity-40"
+            className="w-full rounded-full bg-[#0F8477] px-6 py-3 text-[14px] font-medium text-white disabled:opacity-40"
           >
             {startingUp ? "준비 중..." : "인터뷰 시작하기"}
           </button>
@@ -213,19 +212,14 @@ export default function InterviewPage() {
           <span className="text-[15px] font-extrabold tracking-tight text-[#17191C]">
             ISIG
           </span>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-1">
             <button
               onClick={resetToTopicSelect}
-              className="text-[13px] font-medium text-[#6B7280] hover:text-[#17191C]"
+              className="rounded-full px-3.5 py-2 text-[13px] font-medium text-[#6B7280] transition-colors hover:bg-[#F7F8FA] hover:text-[#17191C]"
             >
               주제 변경
             </button>
-            <Link
-              href="/home"
-              className="text-[13px] font-medium text-[#6B7280] hover:text-[#17191C]"
-            >
-              내 문서
-            </Link>
+            <BackLink />
           </div>
         </div>
 
