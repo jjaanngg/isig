@@ -2,7 +2,7 @@
 
 > 인수인계 체계가 갖춰지지 않은 모든 조직을 위한, 대화형 AI 인수인계 문서화 도구
 
-**배포 주소**: https://resplendent-dodol-5e10ec.netlify.app
+**배포 주소**: https://baro-isig.netlify.app
 
 ---
 
